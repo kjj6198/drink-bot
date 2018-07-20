@@ -26,17 +26,48 @@ type Element struct {
 	Hint        string   `json:"hint" form:"hint"`
 	Optional    bool     `json:"optional,omitempty" form:"optional,omitempty"`
 	Options     []Option `json:"options,omitempty"`
+	DataSource  string   `json:"data_source"`
 }
 
 type Dialog struct {
-	CallbackID  string `json:"callback_id"`
-	Title       string `json:"title"`
-	SubmitLabel string `json:"submit_label"`
-	Elements    []Element
+	CallbackID  string    `json:"callback_id"`
+	Title       string    `json:"title"`
+	SubmitLabel string    `json:"submit_label"`
+	Elements    []Element `json:"elements"`
 }
 
 type DialogOptions struct {
 	Dialog    Dialog `json:"dialog"`
 	Token     string `json:"token" binding:"required"`
 	TriggerID string `json:"trigger_id"`
+}
+
+type SlackDialog struct {
+	Type      string `json:"type" form:"type"`
+	Token     string `json:"token" form:"token"`
+	TimeStamp int64  `json:"action_ts"`
+	User      string `json:"user" form:"user"`
+}
+
+type SlackUser struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type SlackChannel struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type SlackDialogParams struct {
+	Type         string                 `json:"type" form:"type"`
+	TimeStamp    string                 `json:"ts" form:"ts"`
+	User         *SlackUser             `json:"user" form:"user"`
+	SlackChannel *SlackChannel          `json:"channel" form:"channel"`
+	Submission   map[string]interface{} `json:"submission" form:"submission"`
+	CallbackID   string                 `json:"callback_id" form:"callback_id"`
+}
+
+type SlackDialogPayload struct {
+	Payload *SlackDialogParams `json:"payload" form:"payload"`
 }

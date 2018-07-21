@@ -32,6 +32,7 @@ type MenuParams struct {
 	Duration    int    `json:"duration"`
 	DrinkShopID int    `json:"drink_shop_id"`
 	Email       string `json:"email"`
+	Channel     string `json:"channel"`
 }
 
 func GetDrinkShops() (*DrinkShopReponse, error) {
@@ -48,10 +49,8 @@ func GetDrinkShops() (*DrinkShopReponse, error) {
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(data))
 	out := &DrinkShopReponse{}
 	json.Unmarshal(data, out)
-	fmt.Println(out)
 	return out, nil
 }
 

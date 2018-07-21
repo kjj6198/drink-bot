@@ -71,3 +71,48 @@ type SlackDialogParams struct {
 type SlackDialogPayload struct {
 	Payload *SlackDialogParams `json:"payload" form:"payload"`
 }
+
+func CreateMenuDialog(text string, triggerID string) DialogOptions {
+	return DialogOptions{
+		TriggerID: triggerID,
+		Dialog: Dialog{
+			CallbackID:  "submit-menu",
+			Title:       "建立飲料訂單",
+			SubmitLabel: "建立飲料訂單",
+			Elements: []Element{
+				Element{
+					Label:    "訂單名稱",
+					Name:     "name",
+					Value:    text,
+					Type:     "text",
+					Hint:     "please select drink_shop",
+					Optional: false,
+				},
+				Element{
+					Label:      "店家名稱",
+					Name:       "drink_shop",
+					Type:       "select",
+					Hint:       "please select drink_shop",
+					DataSource: "external",
+					Optional:   false,
+				},
+				Element{
+					Label:       "時間（分）",
+					Name:        "duration",
+					Type:        "text",
+					SubType:     "number",
+					Placeholder: "e.g: 900",
+					Hint:        "單位為(分)",
+					Optional:    false,
+				},
+				Element{
+					Label:      "notify to channel",
+					Name:       "channel",
+					Type:       "select",
+					DataSource: "channels",
+					Optional:   false,
+				},
+			},
+		},
+	}
+}

@@ -50,8 +50,9 @@ type SlackDialog struct {
 }
 
 type SlackUser struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type SlackChannel struct {
@@ -109,7 +110,7 @@ func CreateMenuDialog(text string, triggerID string) DialogOptions {
 					Label:      "notify to channel",
 					Name:       "channel",
 					Type:       "select",
-					DataSource: "channels",
+					DataSource: "conversations",
 					Optional:   false,
 				},
 			},

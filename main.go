@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/apex/gateway"
 
@@ -18,5 +19,9 @@ func main() {
 	command := router.Group("/")
 	apis.RegisterCommandHandler(command)
 
-	log.Fatal(gateway.ListenAndServe(":3000", router))
+	if os.Getenv("ENV") == "development" {
+		router.Run()
+	} else {
+		log.Fatal(gateway.ListenAndServe(":3000", router))
+	}
 }

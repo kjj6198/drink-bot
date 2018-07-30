@@ -34,7 +34,7 @@ func OpenDialog(input DialogOptions, headers map[string]string) (result map[stri
 	}
 
 	respData, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(respData))
+
 	if err != nil {
 		return nil, err
 	}

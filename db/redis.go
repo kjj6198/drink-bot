@@ -14,7 +14,8 @@ func NewClient() *redis.Client {
 			os.Getenv("REDIS_HOST"),
 			os.Getenv("REDIS_PORT"),
 		),
-		DB: 0,
+		DB:       0,
+		Password: os.Getenv("REDIS_PASSWORD"),
 	})
 
 	return client

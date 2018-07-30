@@ -33,7 +33,7 @@ func main() {
 
 	apis.RegisterCommandHandler(command)
 
-	if os.Getenv("ENV") == "development" {
+	if os.Getenv("ENV") != "development" {
 		router.Run()
 	} else {
 		log.Fatal(gateway.ListenAndServe(":3000", router))

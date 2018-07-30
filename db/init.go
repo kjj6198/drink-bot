@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -13,30 +12,40 @@ const (
 	DatabaseType = "postgres"
 )
 
-type DrinkShop struct {
-	ID        int
-	Name      string
-	Phone     string
-	Address   string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+type password string
 
-func (d *DrinkShop) AfterCreate() {
-	fmt.Println("after save")
+func (p password) String() string {
+	if p != "" {
+		return fmt.Sprintf("password=%s", string(p))
+	}
+
+	return ""
 }
 
 func Connect() *gorm.DB {
+	var shouldEnableSSL = "disable"
+	var password = password(os.Getenv("DB_PASSWORD"))
+	if os.Getenv("ENV") != "development" {
+		shouldEnableSSL = "require"
+	}
+
 	dbConnStr := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s %s dbname=%s sslmode=%s",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_USER"),
+		password,
 		os.Getenv("DB_NAME"),
+		shouldEnableSSL,
 	)
 
+	fmt.Println(dbConnStr)
+
 	db, err := gorm.Open(DatabaseType, dbConnStr)
-	db.LogMode(true)
+
+	if os.Getenv("ENV") == "development" {
+		db.LogMode(true)
+	}
 
 	if err != nil {
 		panic(err)

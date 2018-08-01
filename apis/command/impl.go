@@ -63,6 +63,11 @@ func getDrinkShops(c *gin.Context) {
 		res[i]["value"] = strconv.Itoa(val.ID)
 	}
 
+	if c.Request.Method == "GET" {
+		c.JSON(200, result)
+		return
+	}
+
 	c.JSON(200, gin.H{
 		"options": res,
 	})

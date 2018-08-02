@@ -4,11 +4,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/kjj6198/drink-bot/apis/command"
+	"github.com/kjj6198/drink-bot/apis/oauth"
 	"github.com/kjj6198/drink-bot/app"
 
 	"github.com/apex/gateway"
 
-	apis "github.com/kjj6198/drink-bot/apis/command"
 	"github.com/kjj6198/drink-bot/config"
 	"github.com/kjj6198/drink-bot/db"
 
@@ -19,10 +20,10 @@ func main() {
 	config.Load()
 	router := gin.Default()
 
-	command := router.Group("/")
+	api := router.Group("/")
 	pg := db.Connect()
 	client := db.NewClient()
-	command.Use(func(c *gin.Context) {
+	api.Use(func(c *gin.Context) {
 		appContext := app.AppContext{
 			DB:     pg,
 			Client: client,
@@ -31,7 +32,8 @@ func main() {
 		c.Set("app", appContext)
 	})
 
-	apis.RegisterCommandHandler(command)
+	command.RegisterCommandHandler(api)
+	oauth.RegisterOAuthHandler(api.Group("/oauth"))
 
 	if os.Getenv("ENV") == "development" {
 		router.Run()

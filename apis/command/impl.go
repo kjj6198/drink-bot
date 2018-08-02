@@ -1,4 +1,4 @@
-package apis
+package command
 
 import (
 	"encoding/json"

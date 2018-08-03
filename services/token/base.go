@@ -10,15 +10,15 @@ import (
 )
 
 func Sign(user *models.User) (string, error) {
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":   user.Email,
 		"picture": user.Picture,
 	})
 
-	return token.SignedString([]byte("64characterslongstring"))
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 }
 
+// Parse parses signed string into claims info
 func Parse(jwtStr string) (result map[string]interface{}, err error) {
 	token, _ := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -29,7 +29,8 @@ func Parse(jwtStr string) (result map[string]interface{}, err error) {
 	})
 
 	if token == nil {
-		log.Fatal("can not parse jwt string")
+		err := fmt.Errorf("Unexpected token info or invalid signed string")
+		log.Fatal(err)
 		return nil, err
 	}
 

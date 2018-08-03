@@ -34,7 +34,7 @@ func main() {
 	})
 
 	command.RegisterCommandHandler(api)
-	oauth.RegisterOAuthHandler(api.Group("/oauth"))
+	oauth.RegisterOAuthHandler(api.Group("/user"))
 
 	if os.Getenv("ENV") == "development" {
 		router.Run()

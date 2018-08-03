@@ -50,7 +50,7 @@ func googleoauth(c *gin.Context) {
 	json.Unmarshal([]byte(data), user)
 	dbUser := appContext.DB.Where("email = ?", user.Email).First(new(models.User)).Value.(*models.User)
 
-	if dbUser == nil && user.Is17User() {
+	if dbUser.ID == 0 && !user.Is17User() {
 		newUser := &models.User{
 			Email:       user.Email,
 			Username:    user.Name,
@@ -59,22 +59,44 @@ func googleoauth(c *gin.Context) {
 			IsAdmin:     false,
 		}
 
-		newUser.Create(appContext.DB)
-	}
+		u := newUser.Create(appContext.DB)
+		jwtToken, err := token.Sign(u)
 
-	if !user.Is17User() {
+		if utils.ErrorHandler(err, c) {
+			return
+		}
+
+		c.SetCookie("token", jwtToken, 108000, "/", "", false, true)
+
+		// TODO: find a better serailizer to do this work.
+		c.JSON(200, gin.H{
+			"id":       u.ID,
+			"email":    u.Email,
+			"username": u.Username,
+			"is_admin": u.IsAdmin,
+			"picture":  u.Picture,
+		})
+	} else {
 		c.AbortWithStatus(401)
 		return
 	}
 
-	signedStr, err := token.Sign(dbUser)
-	if hasErr := utils.ErrorHandler(err, c); hasErr {
-		return
-	}
-
+	// TODO: move this operation to model layer.
 	dbUser.Picture = user.Picture
 	dbUser.Email = user.Email
 	dbUser.SignInCount++
+	appContext.DB.Model(&models.User{}).Update(dbUser)
+
+	jwtToken, _ := token.Sign(dbUser)
+	c.SetCookie("token", jwtToken, 108000, "/", "", false, true)
+
+	c.JSON(200, gin.H{
+		"id":       dbUser.ID,
+		"email":    dbUser.Email,
+		"username": dbUser.Username,
+		"is_admin": dbUser.IsAdmin,
+		"picture":  dbUser.Picture,
+	})
 }
 
 func RegisterOAuthHandler(router *gin.RouterGroup) {

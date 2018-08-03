@@ -22,6 +22,8 @@ func (p password) String() string {
 	return ""
 }
 
+// Connect connect postgre db
+// TODO: error handling and better logger.
 func Connect() *gorm.DB {
 	var shouldEnableSSL = "disable"
 	var password = password(os.Getenv("DB_PASSWORD"))
@@ -38,8 +40,6 @@ func Connect() *gorm.DB {
 		os.Getenv("DB_NAME"),
 		shouldEnableSSL,
 	)
-
-	fmt.Println(dbConnStr)
 
 	db, err := gorm.Open(DatabaseType, dbConnStr)
 

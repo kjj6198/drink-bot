@@ -17,6 +17,6 @@ type User struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func (u *User) Create(db *gorm.DB) {
-	db.Create(u)
+func (u *User) Create(db *gorm.DB) *User {
+	return db.Create(u).Value.(*User)
 }

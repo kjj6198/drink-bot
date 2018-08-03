@@ -23,6 +23,7 @@ func main() {
 	api := router.Group("/")
 	pg := db.Connect()
 	client := db.NewClient()
+
 	api.Use(func(c *gin.Context) {
 		appContext := app.AppContext{
 			DB:     pg,

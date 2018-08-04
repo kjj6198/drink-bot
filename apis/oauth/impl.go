@@ -3,11 +3,11 @@ package oauth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/kjj6198/drink-bot/app"
 	"github.com/kjj6198/drink-bot/models"
@@ -43,9 +43,9 @@ func setTokenCookie(c *gin.Context, name string, value string) {
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Secure:   false,
+		Secure:   os.Getenv("ENV") != "development",
 		HttpOnly: true,
-		Expires:  time.Now().Add(24 * 30 * time.Hour),
+		MaxAge:   3600,
 	})
 }
 
@@ -56,6 +56,7 @@ func googleoauth(c *gin.Context) {
 
 	if input.IDToken == "" {
 		c.AbortWithStatusJSON(400, makeError(ErrNoIdTokenField))
+		return
 	}
 
 	// if already has token cookie, forward it to auth func.
@@ -92,7 +93,7 @@ func googleoauth(c *gin.Context) {
 			return
 		}
 
-		setTokenCookie(c, "token", jwtToken)
+		setTokenCookie(c, "auth_token", jwtToken)
 
 		// TODO: find a better serailizer to do this work.
 		c.JSON(200, gin.H{
@@ -114,7 +115,7 @@ func googleoauth(c *gin.Context) {
 	appContext.DB.Model(&models.User{}).Update(dbUser)
 
 	jwtToken, _ := token.Sign(dbUser)
-	setTokenCookie(c, "token", jwtToken)
+	setTokenCookie(c, "auth_token", jwtToken)
 
 	c.JSON(200, gin.H{
 		"id":       dbUser.ID,
@@ -125,17 +126,27 @@ func googleoauth(c *gin.Context) {
 	})
 }
 
+func logout(c *gin.Context) {
+	if str, err := c.Cookie("auth_token"); str != "" && err == nil {
+		c.SetCookie("auth_token", "", 0, "/", "/", false, true)
+		c.Status(200)
+		return
+	}
+
+	c.JSON(400, makeError(ErrNotLogin))
+}
+
 func auth(c *gin.Context) {
 	appContext := c.MustGet("app").(app.AppContext)
 	tokenVal, err := c.Cookie("token")
 
-	if !utils.ErrorHandler(err, c) {
-		return
+	if err != nil {
+		log.Println("request doesn't have token in cookie, fallback to Authorization header...")
 	}
 
 	// if don't have token in cookie
 	// read Authorization Header as fallback
-	if tokenVal == "" {
+	if tokenVal == "" && err != nil {
 		authorization := c.Request.Header.Get("Authorization")
 		values := strings.Split(authorization, " ")
 
@@ -144,24 +155,80 @@ func auth(c *gin.Context) {
 		}
 	}
 
-	user, err := token.Parse(tokenVal)
-	if !utils.ErrorHandler(err, c) {
+	if tokenVal == "" {
+		c.Status(200)
 		return
 	}
 
-	dbUser := appContext.DB.Where("email = ?", user["email"]).First(new(models.User)).Value.(*models.SeralizedUser)
+	user, err := token.Parse(tokenVal)
+	if err != nil {
+		c.AbortWithStatusJSON(400, makeError(ErrNoIdTokenField))
+		return
+	}
+
+	dbUser := appContext.DB.Where("email = ?", user["email"]).First(new(models.User)).Value.(*models.User)
 
 	if dbUser.ID == 0 {
 		c.AbortWithStatusJSON(401, makeError(ErrPermissionDenied))
+		return
 	}
-	fmt.Println(dbUser)
-	c.JSON(200, dbUser)
+
+	c.JSON(200, &models.SeralizedUser{
+		ID:       dbUser.ID,
+		Email:    dbUser.Email,
+		Picture:  dbUser.Picture,
+		Username: dbUser.Username,
+		IsAdmin:  dbUser.IsAdmin,
+	})
+}
+
+func allowCookie() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		if os.Getenv("ENV") == "development" {
+			c.Header("Access-Control-Allow-Methods", "*")
+			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
+			c.Header("Access-Control-Allow-Origin", c.Request.Header.Get("Origin"))
+			c.Header("Access-Control-Allow-Credentials", "true")
+		} else {
+			c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
+			c.Header("Access-Control-Allow-Origin", "https://drink-17.heroku.com")
+			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+
+		if c.Request.Method == "OPTIONS" {
+			return
+		}
+		c.Next()
+	}
+}
+
+// TODO: Move to middlewares
+func allowOrigin() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		if os.Getenv("ENV") == "development" {
+			c.Header("Access-Control-Allow-Origin", c.Request.Header.Get("Origin"))
+		} else {
+			c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
+			c.Header("Access-Control-Allow-Origin", "https://drink-17.heroku.com")
+			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
+		}
+
+		if c.Request.Method == "OPTIONS" {
+			return
+		}
+		c.Next()
+	}
 }
 
 // RegisterOAuthHandler register oauth api route
 func RegisterOAuthHandler(router *gin.RouterGroup) {
 	// if user already has account, just normally sign in
 	// if user don't have account, create one and sign in for him.
-	router.POST("/sign_in", googleoauth)
-	router.POST("/auth", auth)
+	router.OPTIONS("/sign_in", allowCookie())
+	router.OPTIONS("/auth", allowCookie())
+	router.OPTIONS("/logout", allowCookie())
+	router.POST("/sign_in", allowCookie(), googleoauth)
+	router.POST("/auth", allowCookie(), auth)
+	router.POST("/logout", allowCookie(), logout)
 }

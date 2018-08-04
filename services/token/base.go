@@ -2,7 +2,6 @@ package token
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -11,6 +10,7 @@ import (
 
 func Sign(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":      user.ID,
 		"email":   user.Email,
 		"picture": user.Picture,
 	})
@@ -30,7 +30,6 @@ func Parse(jwtStr string) (result map[string]interface{}, err error) {
 
 	if token == nil {
 		err := fmt.Errorf("Unexpected token info or invalid signed string")
-		log.Fatal(err)
 		return nil, err
 	}
 

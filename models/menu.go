@@ -2,23 +2,25 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 )
 
 type Menu struct {
-	ID          uint      `json:"id"`
-	Name        string    `json:"name"`
-	EndTime     time.Time `json:"end_time"`
-	IsActive    bool      `json:"is_active"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DrinkShopID uint      `json:"-"`
-	UserID      uint      `json:"-"`
-	User        User      `json:"user"`
-	DrinkShop   DrinkShop `json:"drink_shop"`
-	Orders      []Order   `json:"orders"`
+	ID          uint       `json:"id"`
+	Name        string     `json:"name"`
+	EndTime     time.Time  `json:"end_time"`
+	IsActive    bool       `json:"is_active"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DrinkShopID uint       `json:"-"`
+	UserID      uint       `json:"-"`
+	User        *User      `json:"user"`
+	DrinkShop   *DrinkShop `json:"drink_shop"`
+	Orders      []Order    `json:"orders"`
 }
 
 // GetSum calculate menu sum
@@ -35,14 +37,14 @@ func (m *Menu) GetSum() int {
 
 func (m *Menu) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		ID        uint      `json:"id"`
-		Name      string    `json:"name"`
-		EndTime   time.Time `json:"end_time"`
-		IsActive  bool      `json:"is_active"`
-		CreatedAt time.Time `json:"created_at"`
-		DrinkShop DrinkShop `json:"drink_shop"`
-		Orders    []Order   `json:"orders"`
-		Sum       int       `json:"sum"`
+		ID        uint       `json:"id"`
+		Name      string     `json:"name"`
+		EndTime   time.Time  `json:"end_time"`
+		IsActive  bool       `json:"is_active"`
+		CreatedAt time.Time  `json:"created_at"`
+		DrinkShop *DrinkShop `json:"drink_shop"`
+		Orders    []Order    `json:"orders"`
+		Sum       int        `json:"sum"`
 	}{
 		ID:        m.ID,
 		Name:      m.Name,
@@ -72,11 +74,38 @@ func (m *Menu) GetMenus(db *gorm.DB, limit int) *[]*Menu {
 		Value.(*[]*Menu)
 }
 
+func (m *Menu) AfterCreate(tx *gorm.DB) {
+	drinkShop := tx.Find(&DrinkShop{
+		ID: m.DrinkShopID,
+	}).Value.(*DrinkShop)
+
+	user := tx.Find(&User{
+		ID: m.UserID,
+	}).Value.(*User)
+
+	m.DrinkShop = drinkShop
+	m.User = user
+}
+
+func (m *Menu) AfterSave(tx *gorm.DB) {
+	if os.Getenv("ENV") == "development" {
+		fmt.Println(m.DrinkShop, m.User)
+	}
+}
+
 func (m *Menu) CreateMenu(
+	db *gorm.DB,
 	name string,
 	endTime time.Time,
 	drinkShopID uint,
 	userID uint,
-) {
+) *Menu {
+	m.UserID = userID
+	m.DrinkShopID = drinkShopID
+	m.EndTime = endTime
+	m.Name = name
+	m.IsActive = true
 
+	menu := db.Model(&Menu{}).Create(m).Value.(*Menu)
+	return menu
 }

@@ -13,7 +13,7 @@ const (
 )
 
 type DrinkShop struct {
-	ID        int       `json:"id"`
+	ID        uint      `json:"id"`
 	Name      string    `json:"name"`
 	Phone     string    `json:"phone"`
 	Address   string    `json:"address"`

@@ -8,7 +8,7 @@ import (
 
 // User is a normal user
 type User struct {
-	ID          int       `json:"id"`
+	ID          uint      `json:"id"`
 	Email       string    `json:"email"`
 	Username    string    `json:"username"`
 	Picture     string    `json:"picture"`
@@ -21,7 +21,7 @@ type User struct {
 // SeralizedUser is seralized user type for response
 // don't put important data in it.
 type SeralizedUser struct {
-	ID       int    `json:"id"`
+	ID       uint   `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Picture  string `json:"picture"`

@@ -60,7 +60,7 @@ func getDrinkShops(c *gin.Context) {
 	for i, val := range result {
 		res[i] = make(map[string]string)
 		res[i]["label"] = val.Name
-		res[i]["value"] = strconv.Itoa(val.ID)
+		res[i]["value"] = strconv.FormatUint(uint64(val.ID), 10)
 	}
 
 	if c.Request.Method == "GET" {

@@ -3,7 +3,11 @@ package middlewares
 import (
 	"os"
 
+	"github.com/kjj6198/drink-bot/app"
+
 	"github.com/gin-gonic/gin"
+	"github.com/kjj6198/drink-bot/models"
+	"github.com/kjj6198/drink-bot/services/token"
 )
 
 func AllowOrigin() func(c *gin.Context) {
@@ -20,6 +24,35 @@ func AllowOrigin() func(c *gin.Context) {
 			c.Status(200)
 			return
 		}
+
+		c.Next()
+	}
+}
+
+func Auth() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		appContext := c.MustGet("app").(app.AppContext)
+		tokenVal, err := c.Cookie("token")
+		if err != nil {
+			// TODO: prettify error
+			c.AbortWithStatus(400)
+			return
+		}
+
+		user, err := token.Parse(tokenVal)
+		if err != nil {
+			c.AbortWithStatus(400)
+			return
+		}
+
+		dbUser := appContext.DB.Where("email = ?", user["email"]).First(new(models.User)).Value.(*models.User)
+
+		if dbUser.ID == 0 {
+			c.AbortWithStatus(401)
+			return
+		}
+
+		c.Set("current_user", dbUser)
 
 		c.Next()
 	}

@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/kjj6198/drink-bot/apis/orders"
+
 	"github.com/kjj6198/drink-bot/apis/menus"
 
 	"github.com/kjj6198/drink-bot/apis/command"
@@ -38,9 +40,11 @@ func main() {
 	command.RegisterCommandHandler(api)
 	userGroup := api.Group("/user")
 	menuGroup := api.Group("/menus")
+	orderGroup := api.Group("/orders")
 
 	oauth.RegisterOAuthHandler(userGroup)
 	menus.RegisterMenusHandler(menuGroup)
+	orders.RegisterOrdersHandler(orderGroup)
 
 	if os.Getenv("ENV") == "development" {
 		router.Run()

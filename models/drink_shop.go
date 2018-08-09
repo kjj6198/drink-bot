@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -21,6 +22,10 @@ type DrinkShop struct {
 	Comment   string    `json:"comment,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (d *DrinkShop) Find(db *gorm.DB) *DrinkShop {
+	return db.Find(d).Value.(*DrinkShop)
 }
 
 func (d *DrinkShop) GetDrinkShops(db *gorm.DB, client *redis.Client) []DrinkShop {
@@ -45,4 +50,24 @@ func (d *DrinkShop) GetDrinkShops(db *gorm.DB, client *redis.Client) []DrinkShop
 	}()
 
 	return result
+}
+
+func (d *DrinkShop) CreateDrinkShop(db *gorm.DB) (bool, *DrinkShop) {
+	result := db.Model(d).Create(d)
+	drinkShop := result.Value.(*DrinkShop)
+
+	if result.Error != nil {
+		log.Println("can not create drink shop")
+		return false, nil
+	}
+
+	return true, drinkShop
+}
+
+func (d *DrinkShop) DeleteDrinkShop(db *gorm.DB) bool {
+	if db.Delete(d).Error != nil {
+		return false
+	}
+
+	return true
 }

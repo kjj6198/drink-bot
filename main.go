@@ -4,6 +4,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/kjj6198/drink-bot/apis/drink_shops"
+
+	"github.com/kjj6198/drink-bot/apis/profile"
+	"github.com/kjj6198/drink-bot/apis/stats"
+
 	"github.com/kjj6198/drink-bot/apis/orders"
 
 	"github.com/kjj6198/drink-bot/apis/menus"
@@ -41,10 +46,15 @@ func main() {
 	userGroup := api.Group("/user")
 	menuGroup := api.Group("/menus")
 	orderGroup := api.Group("/orders")
+	statsGroup := api.Group("/stats")
+	drinkShopGroup := api.Group("/drink_shop")
 
 	oauth.RegisterOAuthHandler(userGroup)
+	profile.RegisterProfileHandler(userGroup)
 	menus.RegisterMenusHandler(menuGroup)
 	orders.RegisterOrdersHandler(orderGroup)
+	stats.RegisterStatsHandler(statsGroup)
+	drink_shops.RegisterDrinkShopsHandler(drinkShopGroup)
 
 	if os.Getenv("ENV") == "development" {
 		router.Run()

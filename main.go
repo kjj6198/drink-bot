@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/kjj6198/drink-bot/apis/drink_shops"
+	"github.com/kjj6198/drink-bot/middlewares"
 
 	"github.com/kjj6198/drink-bot/apis/profile"
 	"github.com/kjj6198/drink-bot/apis/stats"
@@ -29,6 +30,8 @@ func main() {
 	config.Load()
 	router := gin.Default()
 
+	router.NoRoute(middlewares.AllowOrigin())
+
 	api := router.Group("/")
 	pg := db.Connect()
 	client := db.NewClient()
@@ -43,11 +46,11 @@ func main() {
 	})
 
 	command.RegisterCommandHandler(api)
-	userGroup := api.Group("/user")
-	menuGroup := api.Group("/menus")
-	orderGroup := api.Group("/orders")
-	statsGroup := api.Group("/stats")
-	drinkShopGroup := api.Group("/drink_shop")
+	userGroup := api.Group("/user", middlewares.AllowOrigin())
+	menuGroup := api.Group("/menus", middlewares.AllowOrigin())
+	orderGroup := api.Group("/orders", middlewares.AllowOrigin())
+	statsGroup := api.Group("/stats", middlewares.AllowOrigin())
+	drinkShopGroup := api.Group("/drink_shop", middlewares.AllowOrigin())
 
 	oauth.RegisterOAuthHandler(userGroup)
 	profile.RegisterProfileHandler(userGroup)

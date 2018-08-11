@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kjj6198/drink-bot/app"
+	"github.com/kjj6198/drink-bot/middlewares"
 	"github.com/kjj6198/drink-bot/models"
 	"github.com/kjj6198/drink-bot/services/drink"
 	"github.com/kjj6198/drink-bot/services/slack"
@@ -75,7 +76,7 @@ func getDrinkShops(c *gin.Context) {
 
 func RegisterCommandHandler(router *gin.RouterGroup) {
 	router.POST("/drink_shops", getDrinkShops)
-	router.GET("/drink_shops", getDrinkShops)
+	router.GET("/drink_shops", middlewares.AllowOrigin(), getDrinkShops)
 	router.POST("/", openDialog)
 	router.POST("/create_menu", createMenu)
 }

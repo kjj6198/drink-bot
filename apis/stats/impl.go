@@ -6,19 +6,21 @@ import (
 )
 
 type rank struct {
-	UserName string `json:"username"`
-	MyRank   int    `json:"myrank"`
-	Sum      int    `json:"sum"`
+	UserName string  `json:"username"`
+	MyRank   int     `json:"myrank"`
+	Sum      int     `json:"sum"`
+	Picture  *string `json:"picture"`
 }
 
 const (
 	rankSQL = `SELECT
 	username,
+	picture,
 	SUM(price),
 	rank() OVER (ORDER BY sum(price) DESC) AS myrank
 	FROM orders
 	INNER JOIN users ON orders.user_id = users.id
-	GROUP BY user_id, users.username
+	GROUP BY user_id, users.username, users.picture
 	`
 	drinkShopSumSQL = `SELECT
 	drink_shops.name AS name,
@@ -69,7 +71,7 @@ func ranks(c *gin.Context) {
 
 	for rows.Next() {
 		var result rank
-		rows.Scan(&result.UserName, &result.Sum, &result.MyRank)
+		rows.Scan(&result.UserName, &result.Picture, &result.Sum, &result.MyRank)
 		results = append(results, &result)
 	}
 

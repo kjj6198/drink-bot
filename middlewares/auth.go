@@ -12,12 +12,14 @@ import (
 
 func AllowOrigin() func(c *gin.Context) {
 	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
 		if os.Getenv("ENV") == "development" {
 			c.Header("Access-Control-Allow-Origin", c.Request.Header.Get("Origin"))
+			c.Header("Access-Control-Allow-Credentials", "true")
+			c.Header("Access-Control-Allow-Headers", "*")
 		} else {
-			c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
 			c.Header("Access-Control-Allow-Origin", "https://drink-17.heroku.com")
-			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
+			c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 		}
 
 		if c.Request.Method == "OPTIONS" {

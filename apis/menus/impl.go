@@ -1,6 +1,7 @@
 package menus
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,16 @@ func getMenus(c *gin.Context) {
 	appContext := c.MustGet("app").(app.AppContext)
 	menu := new(models.Menu)
 
-	c.JSON(200, menu.GetMenus(appContext.DB, 100))
+	c.JSON(200, menu.GetMenus(appContext.DB, 20))
+}
+
+func getMenu(c *gin.Context) {
+	appContext := c.MustGet("app").(app.AppContext)
+	id, _ := strconv.ParseUint(c.Param("menu_id"), 10, 64)
+	menu := &models.Menu{ID: uint(id)}
+	menu.GetMenu(appContext.DB)
+
+	c.JSON(200, menu)
 }
 
 func createMenu(c *gin.Context) {
@@ -69,5 +79,6 @@ func RegisterMenusHandler(router *gin.RouterGroup) {
 	})
 
 	router.GET("", middlewares.AllowOrigin(), getMenus)
+	router.GET("/:menu_id", middlewares.AllowOrigin(), getMenu)
 	router.POST("", middlewares.AllowOrigin(), middlewares.Auth(), createMenu)
 }

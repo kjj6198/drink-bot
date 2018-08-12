@@ -55,7 +55,8 @@ func SendMessage(message string, attachments []SlackAttachment, channel string) 
 		Body:   payload,
 	}
 
-	fmt.Println(requests.Request(context.Background(), config))
+	// TODO: better error handling
+	requests.Request(context.Background(), config)
 
 	return nil
 }

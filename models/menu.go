@@ -122,6 +122,7 @@ func (m *Menu) AfterSave(tx *gorm.DB) {
 				map[string]string{"title": "店家名稱", "value": m.DrinkShop.Name},
 				map[string]string{"title": "開始時間", "value": m.CreatedAt.Format("15:04:05")},
 				map[string]string{"title": "結束時間", "value": m.EndTime.Format("15:04:05")},
+				map[string]string{"title": "剩餘時間", "value": fmt.Sprintf("%d 分", int(m.EndTime.Sub(time.Now()).Minutes()))},
 			},
 			ImageURL:  m.DrinkShop.ImageURL,
 			Timestamp: time.Now().Unix(),

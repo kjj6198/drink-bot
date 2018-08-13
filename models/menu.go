@@ -47,6 +47,7 @@ func (m *Menu) MarshalJSON() ([]byte, error) {
 		CreatedAt time.Time  `json:"created_at"`
 		DrinkShop *DrinkShop `json:"drink_shop"`
 		Orders    []Order    `json:"orders"`
+		User      *User      `json:"user"`
 		Sum       int        `json:"sum"`
 	}{
 		ID:        m.ID,
@@ -56,6 +57,7 @@ func (m *Menu) MarshalJSON() ([]byte, error) {
 		CreatedAt: m.CreatedAt,
 		DrinkShop: m.DrinkShop,
 		Orders:    m.Orders,
+		User:      m.User,
 		Sum:       m.GetSum(),
 	})
 }

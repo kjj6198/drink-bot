@@ -30,11 +30,13 @@ func myRank(c *gin.Context) {
 	FROM orders
 	INNER JOIN users ON orders.user_id = users.id
 	WHERE user_id = ?
-	GROUP BY user_id, users.username`, currentUser.(*models.User).ID).Row()
+	GROUP BY user_id, users.username
+	`, currentUser.(*models.User).ID).Row()
 
 	var orders []*models.Order
 	results := appContext.DB.
 		Limit(200).
+		Order("created_at DESC").
 		Where("user_id = ?", currentUser.(*models.User).ID).
 		Find(&orders).Value.(*[]*models.Order)
 

@@ -52,15 +52,22 @@ func create(c *gin.Context) {
 		data,
 	)
 
-	drinkShop := &models.DrinkShop{
-		Name:     multipart.Value["name"][0],
-		Phone:    multipart.Value["photo"][0],
-		Address:  multipart.Value["address"][0],
-		ImageURL: fmt.Sprintf("%s/%s", baseURL, filename),
-		Comment:  multipart.Value["comment"][0],
+	comment := multipart.Value["comment"]
+
+	if comment == nil {
+		comment = []string{""}
 	}
 
-	_, drinkShop = drinkShop.CreateDrinkShop(appContext.DB)
+	drinkShop := &models.DrinkShop{
+		Name:     multipart.Value["name"][0],
+		Phone:    multipart.Value["phone"][0],
+		Address:  multipart.Value["address"][0],
+		ImageURL: fmt.Sprintf("%s/%s", baseURL, filename),
+		Comment:  comment[0],
+	}
+
+	_, drinkShop = drinkShop.CreateDrinkShop(appContext.DB, appContext.Client)
+
 	c.JSON(200, drinkShop)
 }
 

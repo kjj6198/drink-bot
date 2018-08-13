@@ -34,9 +34,10 @@ func AllowOrigin() func(c *gin.Context) {
 func Auth() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		appContext := c.MustGet("app").(app.AppContext)
-		tokenVal, err := c.Cookie("token")
+		tokenVal, err := c.Cookie("auth_token")
 		if err != nil {
 			// TODO: prettify error
+
 			c.AbortWithStatus(400)
 			return
 		}

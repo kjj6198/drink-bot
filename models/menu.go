@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -64,6 +65,7 @@ func (m *Menu) GetMenu(db *gorm.DB) {
 		Preload("User").
 		Preload("DrinkShop").
 		Preload("Orders").
+		Preload("Orders.User").
 		Model(m).
 		First(m).
 		Value.(*Menu)
@@ -82,6 +84,7 @@ func (m *Menu) GetMenus(db *gorm.DB, limit int) *[]*Menu {
 		Preload("User").
 		Preload("DrinkShop").
 		Preload("Orders").
+		Preload("Orders.User").
 		Find(&menus).
 		Value.(*[]*Menu)
 }
@@ -97,18 +100,42 @@ func (m *Menu) AfterCreate(tx *gorm.DB) {
 
 	m.DrinkShop = drinkShop
 	m.User = user
+
+	m.SendMenuInfoToChannel()
 }
 
-func (m *Menu) AfterSave(tx *gorm.DB) {
-	if os.Getenv("ENV") == "development" {
-		fmt.Println(m.DrinkShop, m.User)
-	}
+func (m *Menu) NotifyCountdown(db *gorm.DB) {
+	// TODO: refactor to worker mode.
+	countdown := m.EndTime.Sub(time.Now().UTC())
+	endHint := fmt.Sprintf("*%s* 已經結束囉，沒有訂到的哭哭哦 :jack-see-you: 查詢訂單：\n`@yuile :order_id`", m.Name)
 
+	time.AfterFunc(countdown, func() {
+		go db.Model(m).Update("is_active", false)
+		slack.SendMessage(endHint, []slack.SlackAttachment{
+			slack.SlackAttachment{
+				AuthorName: "17 Drink",
+				AuthorLink: os.Getenv("HOST_URL"),
+				Color:      "#fe6565",
+				TitleLink:  fmt.Sprintf("%s/menus/%s", os.Getenv("HOST_URL"), fmt.Sprint(m.ID)),
+				Text:       m.Name,
+				Fields: []map[string]string{
+					map[string]string{"title": "訂單編號", "value": strconv.FormatUint(uint64(m.ID), 10)},
+					map[string]string{"title": "訂單金額", "value": strconv.Itoa(m.GetSum())},
+					map[string]string{"title": "杯數", "value": strconv.Itoa(len(m.Orders))},
+					map[string]string{"title": "店家電話", "value": m.DrinkShop.Phone},
+				},
+			},
+		}, m.Channel)
+	})
+}
+
+func (m *Menu) SendMenuInfoToChannel() {
 	hint := fmt.Sprintf(
 		"*%s* 發起了訂飲料活動",
 		m.User.Username,
 	)
 
+	loc, _ := time.LoadLocation("Asia/Taipei")
 	// TODO: error handling
 	go slack.SendMessage(hint, []slack.SlackAttachment{
 		slack.SlackAttachment{
@@ -121,7 +148,7 @@ func (m *Menu) AfterSave(tx *gorm.DB) {
 			Fields: []map[string]string{
 				map[string]string{"title": "店家名稱", "value": m.DrinkShop.Name},
 				map[string]string{"title": "開始時間", "value": m.CreatedAt.Format("15:04:05")},
-				map[string]string{"title": "結束時間", "value": m.EndTime.Format("15:04:05")},
+				map[string]string{"title": "結束時間", "value": m.EndTime.In(loc).Format("15:04:05")},
 				map[string]string{"title": "剩餘時間", "value": fmt.Sprintf("%d 分", int(m.EndTime.Sub(time.Now()).Minutes()))},
 			},
 			ImageURL:  m.DrinkShop.ImageURL,
@@ -139,10 +166,15 @@ func (m *Menu) CreateMenu(
 ) *Menu {
 	m.UserID = userID
 	m.DrinkShopID = drinkShopID
-	m.EndTime = endTime
+	m.EndTime = endTime.UTC()
 	m.Name = name
 	m.IsActive = true
 
 	menu := db.Model(&Menu{}).Create(m).Value.(*Menu)
+
+	if menu != nil {
+		go menu.NotifyCountdown(db)
+	}
+
 	return menu
 }

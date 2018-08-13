@@ -52,7 +52,17 @@ func (d *DrinkShop) GetDrinkShops(db *gorm.DB, client *redis.Client) []DrinkShop
 	return result
 }
 
-func (d *DrinkShop) CreateDrinkShop(db *gorm.DB) (bool, *DrinkShop) {
+// TODO: redis update
+func (d *DrinkShop) UpdateDrinkShop(db *gorm.DB, client *redis.Client, values map[string]interface{}) (bool, *DrinkShop) {
+	result := db.Model(d).Updates(values)
+	if result.Error != nil {
+		return false, nil
+	}
+
+	return true, result.Value.(*DrinkShop)
+}
+
+func (d *DrinkShop) CreateDrinkShop(db *gorm.DB, client *redis.Client) (bool, *DrinkShop) {
 	result := db.Model(d).Create(d)
 	drinkShop := result.Value.(*DrinkShop)
 
@@ -60,6 +70,9 @@ func (d *DrinkShop) CreateDrinkShop(db *gorm.DB) (bool, *DrinkShop) {
 		log.Println("can not create drink shop")
 		return false, nil
 	}
+
+	serialized, _ := json.Marshal(result.Value.(*DrinkShop))
+	go client.LPush("drink_shops", serialized)
 
 	return true, drinkShop
 }

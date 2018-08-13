@@ -12,7 +12,7 @@ type Order struct {
 	Note      string    `json:"note"`
 	Price     int       `json:"price"`
 	UserID    uint      `json:"menu_id"`
-	User      *User     `json:"-"`
+	User      *User     `json:"user"`
 	MenuID    uint      `json:"-"`
 	Menu      *Menu     `json:"-"`
 	CreatedAt time.Time `json:"created_at"`

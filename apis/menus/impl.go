@@ -62,13 +62,22 @@ func createMenu(c *gin.Context) {
 		return
 	}
 
-	menu.CreateMenu(
+	m := menu.CreateMenu(
 		appContext.DB,
 		params.Name,
 		timestamp,
 		params.DrinkShopID,
 		currentUser.(*models.User).ID,
 	)
+
+	if m != nil {
+		c.JSON(200, m)
+		return
+	}
+
+	c.JSON(400, gin.H{
+		"message": "cannot create menu",
+	})
 }
 
 func RegisterMenusHandler(router *gin.RouterGroup) {

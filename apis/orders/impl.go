@@ -1,7 +1,6 @@
 package orders
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -80,7 +79,6 @@ func updateOrder(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(params)
 	order.UpdateOrder(
 		appContext.DB,
 		params.Name,

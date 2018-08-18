@@ -20,14 +20,14 @@ import (
 
 	"github.com/apex/gateway"
 
-	"github.com/kjj6198/drink-bot/config"
+	"github.com/kjj6198/configo"
 	"github.com/kjj6198/drink-bot/db"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	config.Load()
+	configo.Load("./config/env.yml")
 	router := gin.Default()
 
 	router.NoRoute(middlewares.AllowOrigin())

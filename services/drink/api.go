@@ -38,6 +38,7 @@ type MenuParams struct {
 func GetDrinkShops() (*DrinkShopReponse, error) {
 	drinkShopURL := fmt.Sprintf("%s/%s", DrinkAPIURL, "drink_shops.json")
 	req, err := http.NewRequest("GET", drinkShopURL, nil)
+
 	if err != nil {
 		return nil, err
 	}

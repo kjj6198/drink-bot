@@ -54,6 +54,7 @@ func createOrder(c *gin.Context) {
 }
 
 func updateOrder(c *gin.Context) {
+	c.Header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 	appContext := c.MustGet("app").(app.AppContext)
 	currentUser, _ := c.Get("current_user")
 	orderID, _ := strconv.ParseUint(c.Param("order_id"), 10, 64)
@@ -79,16 +80,20 @@ func updateOrder(c *gin.Context) {
 		return
 	}
 
-	order.UpdateOrder(
+	c.JSON(200, order.UpdateOrder(
 		appContext.DB,
 		params.Name,
 		params.Price,
 		params.Note,
-	)
+	))
 }
 
 func RegisterOrdersHandler(router *gin.RouterGroup) {
+	router.OPTIONS("", func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+		c.Next()
+	})
 	// TODO 可以用 before action 的方式來註冊 middleware 嗎？
-	router.POST("", middlewares.Auth(), createOrder)
-	router.PUT("/:order_id", middlewares.Auth(), updateOrder)
+	router.POST("", middlewares.AllowOrigin(), middlewares.Auth(), createOrder)
+	router.PUT("/:order_id", middlewares.AllowOrigin(), middlewares.Auth(), updateOrder)
 }

@@ -37,6 +37,7 @@ func SendMessage(message string, attachments []SlackAttachment, channel string) 
 
 	if os.Getenv("ENV") == "development" {
 		channel = "#bon-appetit"
+		return nil
 	}
 
 	payload := map[string]interface{}{

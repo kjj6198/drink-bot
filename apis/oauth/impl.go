@@ -45,7 +45,7 @@ func setTokenCookie(c *gin.Context, name string, value string) {
 		Path:     "/",
 		Secure:   os.Getenv("ENV") != "development",
 		HttpOnly: true,
-		MaxAge:   3600,
+		MaxAge:   60 * 60 * 24 * 100,
 	})
 }
 
@@ -191,7 +191,7 @@ func allowCookie() func(c *gin.Context) {
 			c.Header("Access-Control-Allow-Credentials", "true")
 		} else {
 			c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
-			c.Header("Access-Control-Allow-Origin", "https://drink-17.heroku.com")
+			c.Header("Access-Control-Allow-Origin", os.Getenv("HOST"))
 			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
 			c.Header("Access-Control-Allow-Credentials", "true")
 		}
@@ -210,7 +210,7 @@ func allowOrigin() func(c *gin.Context) {
 			c.Header("Access-Control-Allow-Origin", c.Request.Header.Get("Origin"))
 		} else {
 			c.Header("Access-Control-Allow-Methods", "GET, PUT, PATCH, OPTIONS, POST, DELETE")
-			c.Header("Access-Control-Allow-Origin", "https://drink-17.heroku.com")
+			c.Header("Access-Control-Allow-Origin", os.Getenv("HOST"))
 			c.Header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept")
 		}
 

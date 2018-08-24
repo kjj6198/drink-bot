@@ -35,7 +35,7 @@ func myRank(c *gin.Context) {
 
 	var orders []*models.Order
 	results := appContext.DB.
-		Limit(200).
+		Limit(500).
 		Order("created_at DESC").
 		Where("user_id = ?", currentUser.(*models.User).ID).
 		Find(&orders).Value.(*[]*models.Order)

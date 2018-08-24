@@ -14,7 +14,8 @@ type menuParams struct {
 	Name         string `json:"name"`
 	EndTime      int64  `json:"end_time"`
 	DrinkShopID  uint   `json:"drink_shop_id"`
-	ShouldNotify bool   `json:"should_notify,emitempty"`
+	ShouldNotify bool   `json:"should_notify,omitempty"`
+	Channel      string `json:"channel"`
 }
 
 func getMenus(c *gin.Context) {
@@ -66,6 +67,7 @@ func createMenu(c *gin.Context) {
 		appContext.DB,
 		params.Name,
 		timestamp,
+		params.Channel,
 		params.DrinkShopID,
 		currentUser.(*models.User).ID,
 	)

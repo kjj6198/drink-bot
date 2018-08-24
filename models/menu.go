@@ -163,9 +163,11 @@ func (m *Menu) CreateMenu(
 	db *gorm.DB,
 	name string,
 	endTime time.Time,
+	channel string,
 	drinkShopID uint,
 	userID uint,
 ) *Menu {
+	m.Channel = channel
 	m.UserID = userID
 	m.DrinkShopID = drinkShopID
 	m.EndTime = endTime.UTC()

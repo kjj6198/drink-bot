@@ -53,7 +53,9 @@ func Auth() func(c *gin.Context) {
 			Value.(*models.User)
 
 		if dbUser.ID == 0 {
-			c.AbortWithStatus(401)
+			c.AbortWithStatusJSON(401, gin.H{
+				"message": "can not find user",
+			})
 			return
 		}
 

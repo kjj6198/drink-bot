@@ -1,2 +1,10 @@
 config/env.yml
 .DS_Store
+vendor/*
+!vendor/vendor.json
+# ignore redis dump
+dump.rdb
+
+# vim
+.*.swp
+.*.swo

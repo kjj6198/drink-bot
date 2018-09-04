@@ -4,10 +4,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/kjj6198/drink-bot/apis"
 	"github.com/kjj6198/drink-bot/apis/drink_shops"
 	"github.com/kjj6198/drink-bot/middlewares"
 
-	"github.com/kjj6198/drink-bot/apis/profile"
 	"github.com/kjj6198/drink-bot/apis/stats"
 
 	"github.com/kjj6198/drink-bot/apis/orders"
@@ -46,18 +46,19 @@ func main() {
 	})
 
 	command.RegisterCommandHandler(api)
-	userGroup := api.Group("/user", middlewares.AllowOrigin())
-	menuGroup := api.Group("/menus", middlewares.AllowOrigin())
-	orderGroup := api.Group("/orders", middlewares.AllowOrigin())
-	statsGroup := api.Group("/stats", middlewares.AllowOrigin())
-	drinkShopGroup := api.Group("/drink_shop", middlewares.AllowOrigin())
+	api.Use(middlewares.AllowOrigin())
+	routerMap := apis.RouterMap{
+		"/user":       oauth.RegisterOAuthHandler,
+		"/menus":      menus.RegisterMenusHandler,
+		"/orders":     orders.RegisterOrdersHandler,
+		"/stats":      stats.RegisterStatsHandler,
+		"/drink_shop": drink_shops.RegisterDrinkShopsHandler,
+	}
 
-	oauth.RegisterOAuthHandler(userGroup)
-	profile.RegisterProfileHandler(userGroup)
-	menus.RegisterMenusHandler(menuGroup)
-	orders.RegisterOrdersHandler(orderGroup)
-	stats.RegisterStatsHandler(statsGroup)
-	drink_shops.RegisterDrinkShopsHandler(drinkShopGroup)
+	for path, handler := range routerMap {
+		// TODO: add recover, panic, logger as middlewares
+		handler(api.Group(path))
+	}
 
 	if os.Getenv("ENV") == "development" {
 		router.Run()
